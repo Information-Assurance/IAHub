@@ -4,30 +4,32 @@
   <meta charset="UTF-8">
   <title>Virus Simulation</title>
   <style>
-    body { font-family: Arial, sans-serif; background:#0b1020; color:#f0f0f0; padding:20px; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background:#0b1020; color:#f0f0f0; padding:20px; }
     h1 { color:#ff5555; }
-    .file-list, .log { margin-top:15px; padding:10px; border-radius:6px; background:#111827; }
-    .file { padding:5px 0; border-bottom:1px solid #222; }
-    .file span.name { display:inline-block; width:150px; }
+    .file-list, .log { margin-top:15px; padding:12px; border-radius:6px; background:#111827; }
+    .file { padding:6px 0; border-bottom:1px solid #222; }
+    .file span.name { display:inline-block; width:150px; font-weight:600; }
     .file span.content { color:#9ca3af; }
-    button { margin-top:10px; padding:8px 14px; border:none; border-radius:4px;
-             background:#2563eb; color:white; cursor:pointer; font-weight:bold; }
+    button { margin-top:12px; padding:8px 16px; border:none; border-radius:5px;
+             background:#2563eb; color:white; cursor:pointer; font-weight:bold; transition:0.2s; }
     button:hover { background:#1d4ed8; }
     .infected { color:#f97316; font-weight:bold; }
     .corrupted { color:#f87171; font-weight:bold; }
+    hr { border:0; border-top:1px solid #333; margin:10px 0; }
   </style>
 </head>
 <body>
-  <h1>Virus Simulation (Safe)</h1>
+  <h1>Virus Simulation (Safe & Interactive)</h1>
   <p>
-    This simulation shows a simple file‑infecting virus concept.  
-    The virus only changes text on this page – it does **not** touch real files.
+    This is a <strong>safe simulation</strong> of a simple virus concept.  
+    It only affects this page—no real files will be touched.  
+    Click buttons below to simulate running a file, scanning, and resetting.
   </p>
 
   <div class="file-list" id="fileList"></div>
 
-  <button id="runFileBtn">User: Open "Game.exe"</button>
-  <button id="scanBtn">Simulate Antivirus Scan</button>
+  <button id="runFileBtn">Open "Game.exe"</button>
+  <button id="scanBtn">Run Antivirus Scan</button>
   <button id="resetBtn">Reset Simulation</button>
 
   <div class="log" id="log">
@@ -35,7 +37,7 @@
   </div>
 
   <script>
-    // Simulated "files" in a system
+    // Simulated files
     const files = [
       { name: "Game.exe", content: "Legit game binary", infected: false, corrupted: false },
       { name: "Report.docx", content: "My school report", infected: false, corrupted: false },
@@ -49,6 +51,7 @@
     const scanBtn = document.getElementById("scanBtn");
     const resetBtn = document.getElementById("resetBtn");
 
+    // Render files in a human-readable way
     function renderFiles() {
       fileListDiv.innerHTML = "<strong>Simulated Files:</strong><br>";
       files.forEach(file => {
@@ -67,91 +70,75 @@
       });
     }
 
+    // Friendly log messages
     function log(msg) {
       logDiv.innerHTML += msg + "<br>";
+      logDiv.scrollTop = logDiv.scrollHeight; // auto-scroll
     }
 
-    // Keep a copy of original files so we can reset the simulation
     const originalFiles = JSON.parse(JSON.stringify(files));
 
     // Simulated virus object
     const virus = {
       name: "JS-Demo-Virus",
-      // Attaches itself to a host file
       attachToHost(hostFile) {
         hostFile.infected = true;
-        log(`Virus attached to host file: ${hostFile.name}`);
+        log(`⚠️ The virus has attached itself to "${hostFile.name}".`);
       },
-      // "Corrupts" other files by changing their content text
-      // Corruption happens step by step to better show the spread.
       corruptFilesStepByStep() {
-        log("Virus starts corrupting other files (spreading step by step)...");
+        log("💥 The virus is spreading to other files...");
         const targets = files.filter(f => f.name !== "Game.exe");
         let index = 0;
 
         function infectNext() {
           if (index >= targets.length) {
-            log("Virus finished corrupting all reachable files.");
+            log("✅ All target files have been affected.");
             return;
           }
           const file = targets[index++];
           file.corrupted = true;
           file.content = "[CORRUPTED DATA]";
-          log(`File corrupted: ${file.name}`);
+          log(`🛑 File corrupted: ${file.name}`);
           renderFiles();
           setTimeout(infectNext, 800);
         }
 
         infectNext();
       },
-      // Payload when user runs the infected host file
       executePayload() {
         this.corruptFilesStepByStep();
       }
     };
 
-    // USER ACTION: user opens the suspicious file "Game.exe"
+    // Button actions
     runBtn.addEventListener("click", () => {
-      log("<hr>User double-clicked Game.exe (user action required).");
-
+      log("<hr>▶ User opened Game.exe...");
       const host = files.find(f => f.name === "Game.exe");
-
-      // Simulate virus attaching to host
       virus.attachToHost(host);
       renderFiles();
-
-      // Simulate execution after being opened
       setTimeout(() => {
         virus.executePayload();
-        log("Virus payload executed after user opened the infected host.");
+        log("💻 Virus payload executed after opening the file.");
         runBtn.disabled = true;
-        runBtn.textContent = "Game.exe (already executed)";
+        runBtn.textContent = 'Game.exe (already opened)';
       }, 1000);
     });
-    
-    // Simulate an antivirus scan that detects and "cleans" the virus
+
     scanBtn.addEventListener("click", () => {
-      log("<hr>Antivirus scan started...");
+      log("<hr>🔍 Antivirus scan started...");
       files.forEach(file => {
-        if (file.infected || file.corrupted) {
-          log(`Antivirus cleaned: ${file.name}`);
-        }
+        if (file.infected || file.corrupted) log(`🧹 Cleaned: ${file.name}`);
         file.infected = false;
         file.corrupted = false;
-        if (file.name !== "Game.exe") {
-          // Restore notice that file data is lost in this simulation
-          file.content = "[DATA LOST – RESTORED FROM BACKUP IN REAL SCENARIO]";
-        } else {
-          file.content = "Legit game binary";
-        }
+        if (file.name !== "Game.exe") file.content = "[DATA LOST – restored in real scenario]";
+        else file.content = "Legit game binary";
       });
       renderFiles();
-      log("Antivirus scan finished. In this demo, corrupted files are marked as restored.");
+      log("✅ Scan complete. All files are restored in this simulation.");
     });
 
-    // Reset everything back to the initial clean state
     resetBtn.addEventListener("click", () => {
-      log("<hr>Simulation reset to initial state.");
+      log("<hr>🔄 Simulation reset to original state.");
       for (let i = 0; i < files.length; i++) {
         files[i].name = originalFiles[i].name;
         files[i].content = originalFiles[i].content;
@@ -159,7 +146,7 @@
         files[i].corrupted = originalFiles[i].corrupted;
       }
       runBtn.disabled = false;
-      runBtn.textContent = 'User: Open "Game.exe"';
+      runBtn.textContent = 'Open "Game.exe"';
       renderFiles();
     });
 
