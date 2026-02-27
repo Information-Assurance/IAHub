@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Virus Simulation</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#0b1020; color:#f0f0f0; padding:20px; }
+    h1 { color:#ff5555; }
+    .file-list, .log { margin-top:15px; padding:10px; border-radius:6px; background:#111827; }
+    .file { padding:5px 0; border-bottom:1px solid #222; }
+    .file span.name { display:inline-block; width:150px; }
+    .file span.content { color:#9ca3af; }
+    button { margin-top:10px; padding:8px 14px; border:none; border-radius:4px;
+             background:#2563eb; color:white; cursor:pointer; font-weight:bold; }
+    button:hover { background:#1d4ed8; }
+    .infected { color:#f97316; font-weight:bold; }
+    .corrupted { color:#f87171; font-weight:bold; }
+  </style>
+</head>
+<body>
+  <h1>Virus Simulation (Safe)</h1>
+  <p>
+    This simulation shows a simple file‑infecting virus concept.  
+    The virus only changes text on this page – it does **not** touch real files.
+  </p>
+
+  <div class="file-list" id="fileList"></div>
+
+  <button id="runFileBtn">User: Open "Game.exe"</button>
+
+  <div class="log" id="log">
+    <strong>Activity Log:</strong><br>
+  </div>
+
+  <script>
+    // Simulated "files" in a system
+    const files = [
+      { name: "Game.exe", content: "Legit game binary", infected: false, corrupted: false },
+      { name: "Report.docx", content: "My school report", infected: false, corrupted: false },
+      { name: "Photo.png", content: "Family photo", infected: false, corrupted: false },
+      { name: "Notes.txt", content: "Personal notes", infected: false, corrupted: false }
+    ];
+
+    const fileListDiv = document.getElementById("fileList");
+    const logDiv = document.getElementById("log");
+    const runBtn = document.getElementById("runFileBtn");
+
+    function renderFiles() {
+      fileListDiv.innerHTML = "<strong>Simulated Files:</strong><br>";
+      files.forEach(file => {
+        const status = [];
+        if (file.infected) status.push("INFECTED");
+        if (file.corrupted) status.push("CORRUPTED");
+
+        const div = document.createElement("div");
+        div.className = "file";
+        div.innerHTML = `
+          <span class="name">${file.name}</span>
+          <span class="content">${file.content}</span>
+          ${status.length ? `<span class="${file.corrupted ? 'corrupted' : 'infected'}">[${status.join(" / ")}]</span>` : ""}
+        `;
+        fileListDiv.appendChild(div);
+      });
+    }
+
+    function log(msg) {
+      logDiv.innerHTML += msg + "<br>";
+    }
+
+    // Simulated virus object
+    const virus = {
+      name: "JS-Demo-Virus",
+      // Attaches itself to a host file
+      attachToHost(hostFile) {
+        hostFile.infected = true;
+        log(`Virus attached to host file: ${hostFile.name}`);
+      },
+      // "Corrupts" other files by changing their content text
+      corruptFiles() {
+        log("Virus starts corrupting other files...");
+        files.forEach(file => {
+          if (file.name !== "Game.exe") {
+            file.corrupted = true;
+            file.content = "[CORRUPTED DATA]";
+            log(`File corrupted: ${file.name}`);
+          }
+        });
+      },
+      // Payload when user runs the infected host file
+      executePayload() {
+        this.corruptFiles();
+        renderFiles();
+      }
+    };
+
+    // USER ACTION: user opens the suspicious file "Game.exe"
+    runBtn.addEventListener("click", () => {
+      log("<hr>User double-clicked Game.exe (user action required).");
+
+      const host = files.find(f => f.name === "Game.exe");
+
+      // Simulate virus attaching to host
+      virus.attachToHost(host);
+      renderFiles();
+
+      // Simulate execution after being opened
+      setTimeout(() => {
+        virus.executePayload();
+        log("Virus payload executed after user opened the infected host.");
+        runBtn.disabled = true;
+        runBtn.textContent = "Game.exe (already executed)";
+      }, 1000);
+    });
+
+    renderFiles();
+  </script>
+</body>
+</html>

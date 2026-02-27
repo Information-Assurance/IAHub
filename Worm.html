@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Worm Simulation</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#020617; color:#e5e7eb; padding:20px; }
+    h1 { color:#22c55e; }
+    .network { display:flex; flex-wrap:wrap; gap:10px; margin-top:15px; }
+    .node {
+      width:140px; padding:10px; border-radius:8px; text-align:center;
+      background:#111827; border:2px solid #374151; transition:0.2s;
+    }
+    .node.infected { border-color:#f97316; box-shadow:0 0 10px rgba(249,115,22,0.7); }
+    .node .status { font-size:12px; color:#9ca3af; }
+    .controls { margin-top:10px; }
+    button { padding:8px 12px; border:none; border-radius:4px;
+             background:#22c55e; color:#022c22; font-weight:bold; cursor:pointer; }
+    button:hover { background:#16a34a; }
+    .log { margin-top:15px; padding:10px; background:#020617; border-radius:6px; border:1px solid #1f2937; }
+  </style>
+</head>
+<body>
+  <h1>Worm Simulation (Safe)</h1>
+  <p>
+    This demonstrates a network worm that automatically spreads between simulated machines.  
+    It only affects this page’s fake "nodes", not real computers.
+  </p>
+
+  <div class="controls">
+    <button id="startBtn">Introduce Worm into Node 1</button>
+    <button id="resetBtn">Reset Network</button>
+  </div>
+
+  <div class="network" id="network"></div>
+
+  <div class="log" id="log"><strong>Worm Activity:</strong><br></div>
+
+  <script>
+    const networkDiv = document.getElementById("network");
+    const logDiv = document.getElementById("log");
+    const startBtn = document.getElementById("startBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    // Create a fake network of hosts
+    let nodes = [];
+    const NODE_COUNT = 12;
+    let wormInterval = null;
+
+    function log(msg) {
+      logDiv.innerHTML += msg + "<br>";
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function createNetwork() {
+      nodes = [];
+      networkDiv.innerHTML = "";
+      for (let i = 0; i < NODE_COUNT; i++) {
+        const node = {
+          id: i + 1,
+          infected: false,
+          wormCopies: 0
+        };
+        nodes.push(node);
+
+        const el = document.createElement("div");
+        el.className = "node";
+        el.id = "node-" + node.id;
+        el.innerHTML = `
+          <div><strong>Node ${node.id}</strong></div>
+          <div class="status">Status: Clean</div>
+          <div class="status">Worm copies: 0</div>
+        `;
+        networkDiv.appendChild(el);
+      }
+    }
+
+    function renderNetwork() {
+      nodes.forEach(node => {
+        const el = document.getElementById("node-" + node.id);
+        const statusEls = el.querySelectorAll(".status");
+
+        if (node.infected) {
+          el.classList.add("infected");
+          statusEls[0].textContent = "Status: INFECTED";
+        } else {
+          el.classList.remove("infected");
+          statusEls[0].textContent = "Status: Clean";
+        }
+        statusEls[1].textContent = "Worm copies: " + node.wormCopies;
+      });
+    }
+
+    // Worm behavior
+    const worm = {
+      name: "JS-Demo-Worm",
+      spread() {
+        // Find infected nodes
+        const infectedNodes = nodes.filter(n => n.infected);
+        if (!infectedNodes.length) return;
+
+        infectedNodes.forEach(node => {
+          // Self-replication: increase copy count on infected node
+          node.wormCopies++;
+          log(`Worm replicated on Node ${node.id} (copies: ${node.wormCopies}).`);
+
+          // Try to infect up to 2 random neighbors each tick
+          for (let i = 0; i < 2; i++) {
+            const targetIndex = Math.floor(Math.random() * nodes.length);
+            const target = nodes[targetIndex];
+            if (!target.infected) {
+              target.infected = true;
+              target.wormCopies = 1;
+              log(`Worm automatically spread to Node ${target.id}.`);
+            }
+          }
+        });
+
+        renderNetwork();
+
+        // Stop if all nodes are infected
+        if (nodes.every(n => n.infected)) {
+          log("<strong>All nodes infected. Worm spreading stopped.</strong>");
+          clearInterval(wormInterval);
+          wormInterval = null;
+          startBtn.disabled = false;
+        }
+      }
+    };
+
+    startBtn.addEventListener("click", () => {
+      log("<hr>User connected an infected USB to Node 1. Initial infection started (single user action).");
+
+      // Infect first node
+      const first = nodes[0];
+      first.infected = true;
+      first.wormCopies = 1;
+      renderNetwork();
+
+      // Then automatic spreading (no more user action)
+      if (!wormInterval) {
+        wormInterval = setInterval(() => worm.spread(), 1000);
+      }
+      startBtn.disabled = true;
+    });
+
+    resetBtn.addEventListener("click", () => {
+      if (wormInterval) {
+        clearInterval(wormInterval);
+        wormInterval = null;
+      }
+      createNetwork();
+      renderNetwork();
+      log("<hr>Network reset to clean state.");
+      startBtn.disabled = false;
+    });
+
+    createNetwork();
+    renderNetwork();
+  </script>
+</body>
+</html>

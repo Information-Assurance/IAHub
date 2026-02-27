@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ransomware Simulation</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#020617; color:#e5e7eb; padding:20px; }
+    h1 { color:#f97316; }
+    .email, .files, .ransom-note { margin-top:15px; padding:12px; border-radius:6px; }
+    .email { background:#0b1120; border:1px solid #1f2937; }
+    .files { background:#020617; border:1px solid #1f2937; }
+    .file { border-bottom:1px solid #111827; padding:4px 0; }
+    .filename { display:inline-block; width:150px; }
+    .content { color:#9ca3af; }
+    .ransom-note {
+      background:#111827; border:2px solid #f97316;
+      display:none; margin-top:20px;
+    }
+    .ransom-note h2 { color:#fbbf24; margin-top:0; }
+    a.phish-link { color:#38bdf8; cursor:pointer; text-decoration:underline; }
+    a.phish-link:hover { color:#0ea5e9; }
+    .warning { color:#f97316; font-weight:bold; }
+  </style>
+</head>
+<body>
+  <h1>Ransomware Simulation (Safe)</h1>
+  <p>
+    This page simulates how ransomware might behave, without doing anything harmful.  
+    All "files" are just objects in JavaScript and text on this page.
+  </p>
+
+  <div class="email">
+    <strong>Simulated Phishing Email</strong><br><br>
+    From: <em>IT Support &lt;it-support@fake-company.com&gt;</em><br>
+    Subject: <em>Important: Password Reset Required</em><br><br>
+    Message:<br>
+    Dear user,<br>
+    Your account will be locked unless you confirm your password within 24 hours.<br>
+    Please click the secure link below to keep your access:<br><br>
+    <span class="warning">[Dangerous in real life – for demo only]</span><br>
+    👉 <a class="phish-link" id="phishLink">Click here to verify your account</a>
+  </div>
+
+  <div class="files" id="filesView">
+    <strong>Simulated User Files:</strong><br>
+  </div>
+
+  <div class="ransom-note" id="ransomNote">
+    <h2>!!! YOUR FILES HAVE BEEN ENCRYPTED (SIMULATION) !!!</h2>
+    <p>
+      All your important files in this demo have been encoded using a reversible algorithm.  
+      In real ransomware, a strong encryption algorithm and secret key would be used.
+    </p>
+    <p><strong>Ransom Demand (Demo Text Only):</strong></p>
+    <ul>
+      <li>Send 5 BTC to the following wallet address (FAKE).</li>
+      <li>After payment, you will (theoretically) receive a key to restore your files.</li>
+    </ul>
+    <p class="warning">
+      DO NOT trust emails or links like the one above in real life.
+      Always verify with your IT department through official channels.
+    </p>
+  </div>
+
+  <script>
+    const files = [
+      { name: "Thesis.docx", content: "Chapter 1: Introduction...", encrypted: false },
+      { name: "FamilyPhoto.jpg", content: "Binary image data", encrypted: false },
+      { name: "Budget.xlsx", content: "January expenses: 500 USD", encrypted: false },
+      { name: "Passwords.txt", content: "Email: myemail@example.com / password123", encrypted: false }
+    ];
+
+    const filesView = document.getElementById("filesView");
+    const ransomNote = document.getElementById("ransomNote");
+    const phishLink = document.getElementById("phishLink");
+
+    function renderFiles() {
+      filesView.innerHTML = "<strong>Simulated User Files:</strong><br>";
+      files.forEach(file => {
+        const div = document.createElement("div");
+        div.className = "file";
+        div.innerHTML = `
+          <span class="filename">${file.name}</span>
+          <span class="content">
+            ${file.encrypted ? "[ENCRYPTED] " : ""}${file.content}
+          </span>
+        `;
+        filesView.appendChild(div);
+      });
+    }
+
+    // Very simple **safe** "encoding" to simulate encryption (Base64-like)
+    function fakeEncrypt(text) {
+      // Encode characters as char codes joined by dashes
+      return text.split("")
+                 .map(ch => ch.charCodeAt(0))
+                 .join("-");
+    }
+
+    function fakeDecrypt(encoded) {
+      return encoded.split("-")
+                    .map(num => String.fromCharCode(Number(num)))
+                    .join("");
+    }
+
+    // Simulated ransomware
+    const ransomware = {
+      name: "JS-Demo-Ransom",
+      encryptFiles() {
+        files.forEach(file => {
+          if (!file.encrypted) {
+            file.content = fakeEncrypt(file.content);
+            file.encrypted = true;
+          }
+        });
+        renderFiles();
+        ransomNote.style.display = "block";
+      }
+    };
+
+    // PHISHING-TRIGGERED ACTIVATION: user clicks bad link in fake email
+    phishLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      alert("You clicked a phishing link. In this simulation, ransomware is now triggered.");
+      ransomware.encryptFiles();
+    });
+
+    renderFiles();
+  </script>
+</body>
+</html>
