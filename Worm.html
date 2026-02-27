@@ -2,21 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Worm Simulation</title>
+  <title>Worm Simulation with Network Lines</title>
   <style>
     body { font-family: 'Segoe UI', Arial, sans-serif; background:#0d1117; color:#e5e7eb; padding:20px; }
     h1 { color:#22c55e; text-align:center; }
     p { text-align:center; color:#cbd5e1; }
-    
-    .network { 
-      display:flex; flex-wrap:wrap; justify-content:center; gap:15px; 
-      margin-top:25px; 
-    }
+
+    .network-container { position:relative; width:100%; display:flex; justify-content:center; margin-top:25px; }
+    .network { display:flex; flex-wrap:wrap; justify-content:center; gap:15px; position:relative; z-index:1; }
+
     .node {
       width:130px; height:100px; padding:12px; border-radius:12px;
       background:#161b22; border:2px solid #30363d;
       text-align:center; transition:0.3s, box-shadow 0.3s;
-      position: relative;
+      position:relative;
     }
     .node.infected {
       border-color:#f97316;
@@ -29,13 +28,14 @@
     }
     .node strong { display:block; margin-bottom:5px; color:#c9d1d9; }
     .status { font-size:12px; color:#94a3b8; }
-    
+
+    canvas { position:absolute; top:0; left:0; pointer-events:none; z-index:0; }
+
     .controls { text-align:center; margin-top:15px; }
     button { 
       padding:10px 16px; border:none; border-radius:6px;
       background:#22c55e; color:#022c22; font-weight:bold; cursor:pointer;
-      margin:0 5px;
-      transition:0.2s;
+      margin:0 5px; transition:0.2s;
     }
     button:hover { background:#16a34a; }
     button:disabled { background:#4ade80; cursor:not-allowed; }
@@ -49,26 +49,38 @@
   </style>
 </head>
 <body>
-  <h1>Worm Simulation (Safe)</h1>
-  <p>Watch the worm spread through the network nodes! This is completely safe and only affects this page.</p>
+  <h1>Worm Simulation (Animated)</h1>
+  <p>Watch the worm spread visually through the network!</p>
 
   <div class="controls">
     <button id="startBtn">Infect Node 1</button>
     <button id="resetBtn">Reset Network</button>
   </div>
 
-  <div class="network" id="network"></div>
+  <div class="network-container">
+    <canvas id="lineCanvas"></canvas>
+    <div class="network" id="network"></div>
+  </div>
+
   <div class="log" id="log"><strong>Worm Activity:</strong><br></div>
 
   <script>
     const networkDiv = document.getElementById("network");
+    const canvas = document.getElementById("lineCanvas");
     const logDiv = document.getElementById("log");
     const startBtn = document.getElementById("startBtn");
     const resetBtn = document.getElementById("resetBtn");
 
+    let ctx = canvas.getContext("2d");
     let nodes = [];
     const NODE_COUNT = 12;
     let wormInterval = null;
+
+    function resizeCanvas() {
+      canvas.width = networkDiv.offsetWidth;
+      canvas.height = networkDiv.offsetHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
 
     function log(msg) {
       logDiv.innerHTML += msg + "<br>";
@@ -79,7 +91,7 @@
       nodes = [];
       networkDiv.innerHTML = "";
       for (let i = 0; i < NODE_COUNT; i++) {
-        const node = { id:i+1, infected:false, wormCopies:0 };
+        const node = { id:i+1, infected:false, wormCopies:0, el:null };
         nodes.push(node);
 
         const el = document.createElement("div");
@@ -90,13 +102,35 @@
           <div class="status">Status: Clean</div>
           <div class="status">Worm copies: 0</div>
         `;
+        node.el = el;
         networkDiv.appendChild(el);
       }
+      resizeCanvas();
+    }
+
+    function getNodeCenter(node) {
+      const rect = node.el.getBoundingClientRect();
+      const parentRect = networkDiv.getBoundingClientRect();
+      return {
+        x: rect.left + rect.width/2 - parentRect.left,
+        y: rect.top + rect.height/2 - parentRect.top
+      };
+    }
+
+    function drawLine(fromNode, toNode) {
+      const from = getNodeCenter(fromNode);
+      const to = getNodeCenter(toNode);
+      ctx.strokeStyle = "rgba(249,115,22,0.7)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+      ctx.lineTo(to.x, to.y);
+      ctx.stroke();
     }
 
     function renderNetwork() {
       nodes.forEach(node => {
-        const el = document.getElementById("node-" + node.id);
+        const el = node.el;
         const statusEls = el.querySelectorAll(".status");
         if (node.infected) {
           el.classList.add("infected");
@@ -111,6 +145,8 @@
 
     const worm = {
       spread() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
         const infectedNodes = nodes.filter(n => n.infected);
         if (!infectedNodes.length) return;
 
@@ -124,7 +160,8 @@
             if (!target.infected) {
               target.infected = true;
               target.wormCopies = 1;
-              log(`Worm automatically spread to Node ${target.id}.`);
+              drawLine(node, target); // Draw visual line
+              log(`Worm spread from Node ${node.id} to Node ${target.id}.`);
             }
           }
         });
@@ -155,6 +192,7 @@
 
     resetBtn.addEventListener("click", () => {
       if (wormInterval) { clearInterval(wormInterval); wormInterval=null; }
+      ctx.clearRect(0,0,canvas.width,canvas.height);
       createNetwork();
       renderNetwork();
       log("<hr>Network reset to clean state.");
