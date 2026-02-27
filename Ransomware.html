@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Ransomware Simulation (Visual)</title>
-
 <style>
 body {
   font-family: 'Segoe UI', Arial, sans-serif;
@@ -11,20 +10,17 @@ body {
   color: #e5e7eb;
   padding: 20px;
 }
-
 h1 {
   text-align: center;
   color: #f97316;
   letter-spacing: 1px;
 }
-
 p.description {
   text-align: center;
   color: #94a3b8;
   max-width: 750px;
   margin: auto;
 }
-
 .card {
   background: #0b1120;
   border: 1px solid #1f2937;
@@ -34,34 +30,28 @@ p.description {
   box-shadow: 0 0 20px rgba(0,0,0,0.4);
   transition: 0.3s;
 }
-
 .card:hover {
   box-shadow: 0 0 25px rgba(56,189,248,0.3);
 }
-
 .email-header {
   font-size: 14px;
   color: #9ca3af;
   margin-bottom: 10px;
 }
-
 .phish-link {
   color: #38bdf8;
   cursor: pointer;
   font-weight: bold;
   text-decoration: underline;
 }
-
 .phish-link:hover {
   color: #0ea5e9;
 }
-
 .files {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 15px;
 }
-
 .file {
   background: #111827;
   border-radius: 10px;
@@ -70,24 +60,20 @@ p.description {
   transition: 0.3s;
   position: relative;
 }
-
 .file:hover {
   transform: translateY(-3px);
   box-shadow: 0 0 15px rgba(56,189,248,0.2);
 }
-
 .filename {
   font-weight: bold;
   color: #cbd5e1;
 }
-
 .content {
   font-size: 12px;
   color: #94a3b8;
   margin-top: 5px;
   word-break: break-all;
 }
-
 .lock {
   position: absolute;
   top: 10px;
@@ -96,21 +82,17 @@ p.description {
   opacity: 0;
   transition: 0.3s;
 }
-
 .file.encrypted {
   border: 1px solid #f97316;
   animation: pulse 1s infinite alternate;
 }
-
 .file.encrypted .lock {
   opacity: 1;
 }
-
 @keyframes pulse {
   from { box-shadow: 0 0 5px #f97316; }
   to { box-shadow: 0 0 20px #f97316; }
 }
-
 .ransom-note {
   display: none;
   margin-top: 25px;
@@ -120,32 +102,43 @@ p.description {
   background: radial-gradient(circle at top, #220000, #0b0000);
   animation: fadeIn 1s ease forwards;
 }
-
 .ransom-note h2 {
   color: #f87171;
   text-align: center;
   animation: glitch 1s infinite;
 }
-
 @keyframes glitch {
   0% { text-shadow: 2px 0 red; }
   50% { text-shadow: -2px 0 blue; }
   100% { text-shadow: 2px 0 red; }
 }
-
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
 }
-
+.button-pay {
+  display: block;
+  margin: 20px auto 0 auto;
+  padding: 10px 20px;
+  background: #22c55e;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #022c22;
+  transition: 0.3s;
+}
+.button-pay:hover {
+  background: #16a34a;
+}
 .warning {
   color: #fbbf24;
   font-weight: bold;
   margin-top: 10px;
+  text-align: center;
 }
 </style>
 </head>
-
 <body>
 
 <h1>Ransomware Simulation</h1>
@@ -173,9 +166,10 @@ This is a safe cybersecurity simulation. Nothing on your real computer is affect
   <h2>!!! YOUR FILES HAVE BEEN ENCRYPTED !!!</h2>
   <p>All your demo files are locked using a reversible encoding method.</p>
   <ul>
-    <li>Send 5 BTC to FAKE wallet (demo only).</li>
-    <li>After payment, you would receive a key (not real).</li>
+    <li>Send 5 Bitcoin to FAKE wallet (demo only).</li>
+    <li>After payment, the attacker will automatically restore your files.</li>
   </ul>
+  <button class="button-pay" id="payBtn">💰 Simulate Payment</button>
   <p class="warning">
   ⚠️ Never trust suspicious emails in real life. Always verify with official sources.
   </p>
@@ -192,6 +186,7 @@ const files = [
 const filesView = document.getElementById("filesView");
 const ransomNote = document.getElementById("ransomNote");
 const phishLink = document.getElementById("phishLink");
+const payBtn = document.getElementById("payBtn");
 
 function renderFiles() {
   filesView.innerHTML = "";
@@ -207,8 +202,14 @@ function renderFiles() {
   });
 }
 
+// Simple fake encryption
 function fakeEncrypt(text) {
   return text.split("").map(ch => ch.charCodeAt(0)).join("-");
+}
+
+// Simple fake decryption (restores original text)
+function fakeDecrypt(text, original) {
+  return original;
 }
 
 const ransomware = {
@@ -221,12 +222,31 @@ const ransomware = {
     });
     renderFiles();
     ransomNote.style.display = "block";
+  },
+  decryptFiles() {
+    const originalContents = [
+      "Chapter 1: Introduction...",
+      "Binary image data",
+      "January expenses: 500 USD",
+      "Email: myemail@example.com / password123"
+    ];
+    files.forEach((file, idx) => {
+      file.content = fakeDecrypt(file.content, originalContents[idx]);
+      file.encrypted = false;
+    });
+    renderFiles();
+    ransomNote.style.display = "none";
+    alert("Demo: Files have been decrypted after simulated payment.");
   }
 };
 
 phishLink.addEventListener("click", () => {
   alert("You clicked a phishing link. Ransomware simulation activated.");
   ransomware.encryptFiles();
+});
+
+payBtn.addEventListener("click", () => {
+  ransomware.decryptFiles();
 });
 
 renderFiles();
