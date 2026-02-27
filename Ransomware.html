@@ -1,131 +1,236 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Ransomware Simulation</title>
-  <style>
-    body { font-family: Arial, sans-serif; background:#020617; color:#e5e7eb; padding:20px; }
-    h1 { color:#f97316; }
-    .email, .files, .ransom-note { margin-top:15px; padding:12px; border-radius:6px; }
-    .email { background:#0b1120; border:1px solid #1f2937; }
-    .files { background:#020617; border:1px solid #1f2937; }
-    .file { border-bottom:1px solid #111827; padding:4px 0; }
-    .filename { display:inline-block; width:150px; }
-    .content { color:#9ca3af; }
-    .ransom-note {
-      background:#111827; border:2px solid #f97316;
-      display:none; margin-top:20px;
-    }
-    .ransom-note h2 { color:#fbbf24; margin-top:0; }
-    a.phish-link { color:#38bdf8; cursor:pointer; text-decoration:underline; }
-    a.phish-link:hover { color:#0ea5e9; }
-    .warning { color:#f97316; font-weight:bold; }
-  </style>
+<meta charset="UTF-8">
+<title>Ransomware Simulation (Visual)</title>
+
+<style>
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(135deg, #0f172a, #020617);
+  color: #e5e7eb;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  color: #f97316;
+  letter-spacing: 1px;
+}
+
+p.description {
+  text-align: center;
+  color: #94a3b8;
+  max-width: 750px;
+  margin: auto;
+}
+
+.card {
+  background: #0b1120;
+  border: 1px solid #1f2937;
+  border-radius: 12px;
+  padding: 18px;
+  margin-top: 20px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.4);
+  transition: 0.3s;
+}
+
+.card:hover {
+  box-shadow: 0 0 25px rgba(56,189,248,0.3);
+}
+
+.email-header {
+  font-size: 14px;
+  color: #9ca3af;
+  margin-bottom: 10px;
+}
+
+.phish-link {
+  color: #38bdf8;
+  cursor: pointer;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.phish-link:hover {
+  color: #0ea5e9;
+}
+
+.files {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 15px;
+}
+
+.file {
+  background: #111827;
+  border-radius: 10px;
+  padding: 12px;
+  border: 1px solid #1f2937;
+  transition: 0.3s;
+  position: relative;
+}
+
+.file:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 15px rgba(56,189,248,0.2);
+}
+
+.filename {
+  font-weight: bold;
+  color: #cbd5e1;
+}
+
+.content {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 5px;
+  word-break: break-all;
+}
+
+.lock {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 18px;
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.file.encrypted {
+  border: 1px solid #f97316;
+  animation: pulse 1s infinite alternate;
+}
+
+.file.encrypted .lock {
+  opacity: 1;
+}
+
+@keyframes pulse {
+  from { box-shadow: 0 0 5px #f97316; }
+  to { box-shadow: 0 0 20px #f97316; }
+}
+
+.ransom-note {
+  display: none;
+  margin-top: 25px;
+  padding: 25px;
+  border-radius: 12px;
+  border: 2px solid #ef4444;
+  background: radial-gradient(circle at top, #220000, #0b0000);
+  animation: fadeIn 1s ease forwards;
+}
+
+.ransom-note h2 {
+  color: #f87171;
+  text-align: center;
+  animation: glitch 1s infinite;
+}
+
+@keyframes glitch {
+  0% { text-shadow: 2px 0 red; }
+  50% { text-shadow: -2px 0 blue; }
+  100% { text-shadow: 2px 0 red; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.warning {
+  color: #fbbf24;
+  font-weight: bold;
+  margin-top: 10px;
+}
+</style>
 </head>
+
 <body>
-  <h1>Ransomware Simulation (Safe)</h1>
-  <p>
-    This page simulates how ransomware might behave, without doing anything harmful.  
-    All "files" are just objects in JavaScript and text on this page.
+
+<h1>Ransomware Simulation</h1>
+<p class="description">
+This is a safe cybersecurity simulation. Nothing on your real computer is affected.
+</p>
+
+<div class="card">
+  <h3>📧 Simulated Phishing Email</h3>
+  <div class="email-header">
+    From: IT Support &lt;it-support@fake-company.com&gt;<br>
+    Subject: Important: Password Reset Required
+  </div>
+  Dear user,<br>
+  Your account will be locked unless you confirm your password.<br><br>
+  👉 <span class="phish-link" id="phishLink">Click here to verify your account</span>
+</div>
+
+<div class="card">
+  <h3>💾 Simulated User Files</h3>
+  <div class="files" id="filesView"></div>
+</div>
+
+<div class="ransom-note" id="ransomNote">
+  <h2>!!! YOUR FILES HAVE BEEN ENCRYPTED !!!</h2>
+  <p>All your demo files are locked using a reversible encoding method.</p>
+  <ul>
+    <li>Send 5 BTC to FAKE wallet (demo only).</li>
+    <li>After payment, you would receive a key (not real).</li>
+  </ul>
+  <p class="warning">
+  ⚠️ Never trust suspicious emails in real life. Always verify with official sources.
   </p>
+</div>
 
-  <div class="email">
-    <strong>Simulated Phishing Email</strong><br><br>
-    From: <em>IT Support &lt;it-support@fake-company.com&gt;</em><br>
-    Subject: <em>Important: Password Reset Required</em><br><br>
-    Message:<br>
-    Dear user,<br>
-    Your account will be locked unless you confirm your password within 24 hours.<br>
-    Please click the secure link below to keep your access:<br><br>
-    <span class="warning">[Dangerous in real life – for demo only]</span><br>
-    👉 <a class="phish-link" id="phishLink">Click here to verify your account</a>
-  </div>
+<script>
+const files = [
+  { name: "Thesis.docx", content: "Chapter 1: Introduction...", encrypted: false },
+  { name: "FamilyPhoto.jpg", content: "Binary image data", encrypted: false },
+  { name: "Budget.xlsx", content: "January expenses: 500 USD", encrypted: false },
+  { name: "Passwords.txt", content: "Email: myemail@example.com / password123", encrypted: false }
+];
 
-  <div class="files" id="filesView">
-    <strong>Simulated User Files:</strong><br>
-  </div>
+const filesView = document.getElementById("filesView");
+const ransomNote = document.getElementById("ransomNote");
+const phishLink = document.getElementById("phishLink");
 
-  <div class="ransom-note" id="ransomNote">
-    <h2>!!! YOUR FILES HAVE BEEN ENCRYPTED (SIMULATION) !!!</h2>
-    <p>
-      All your important files in this demo have been encoded using a reversible algorithm.  
-      In real ransomware, a strong encryption algorithm and secret key would be used.
-    </p>
-    <p><strong>Ransom Demand (Demo Text Only):</strong></p>
-    <ul>
-      <li>Send 5 BTC to the following wallet address (FAKE).</li>
-      <li>After payment, you will (theoretically) receive a key to restore your files.</li>
-    </ul>
-    <p class="warning">
-      DO NOT trust emails or links like the one above in real life.
-      Always verify with your IT department through official channels.
-    </p>
-  </div>
+function renderFiles() {
+  filesView.innerHTML = "";
+  files.forEach(file => {
+    const div = document.createElement("div");
+    div.className = "file" + (file.encrypted ? " encrypted" : "");
+    div.innerHTML = `
+      <div class="filename">${file.name}</div>
+      <div class="content">${file.encrypted ? "[ENCRYPTED] " : ""}${file.content}</div>
+      <div class="lock">🔒</div>
+    `;
+    filesView.appendChild(div);
+  });
+}
 
-  <script>
-    const files = [
-      { name: "Thesis.docx", content: "Chapter 1: Introduction...", encrypted: false },
-      { name: "FamilyPhoto.jpg", content: "Binary image data", encrypted: false },
-      { name: "Budget.xlsx", content: "January expenses: 500 USD", encrypted: false },
-      { name: "Passwords.txt", content: "Email: myemail@example.com / password123", encrypted: false }
-    ];
+function fakeEncrypt(text) {
+  return text.split("").map(ch => ch.charCodeAt(0)).join("-");
+}
 
-    const filesView = document.getElementById("filesView");
-    const ransomNote = document.getElementById("ransomNote");
-    const phishLink = document.getElementById("phishLink");
-
-    function renderFiles() {
-      filesView.innerHTML = "<strong>Simulated User Files:</strong><br>";
-      files.forEach(file => {
-        const div = document.createElement("div");
-        div.className = "file";
-        div.innerHTML = `
-          <span class="filename">${file.name}</span>
-          <span class="content">
-            ${file.encrypted ? "[ENCRYPTED] " : ""}${file.content}
-          </span>
-        `;
-        filesView.appendChild(div);
-      });
-    }
-
-    // Very simple **safe** "encoding" to simulate encryption (Base64-like)
-    function fakeEncrypt(text) {
-      // Encode characters as char codes joined by dashes
-      return text.split("")
-                 .map(ch => ch.charCodeAt(0))
-                 .join("-");
-    }
-
-    function fakeDecrypt(encoded) {
-      return encoded.split("-")
-                    .map(num => String.fromCharCode(Number(num)))
-                    .join("");
-    }
-
-    // Simulated ransomware
-    const ransomware = {
-      name: "JS-Demo-Ransom",
-      encryptFiles() {
-        files.forEach(file => {
-          if (!file.encrypted) {
-            file.content = fakeEncrypt(file.content);
-            file.encrypted = true;
-          }
-        });
-        renderFiles();
-        ransomNote.style.display = "block";
+const ransomware = {
+  encryptFiles() {
+    files.forEach(file => {
+      if (!file.encrypted) {
+        file.content = fakeEncrypt(file.content);
+        file.encrypted = true;
       }
-    };
-
-    // PHISHING-TRIGGERED ACTIVATION: user clicks bad link in fake email
-    phishLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      alert("You clicked a phishing link. In this simulation, ransomware is now triggered.");
-      ransomware.encryptFiles();
     });
-
     renderFiles();
-  </script>
+    ransomNote.style.display = "block";
+  }
+};
+
+phishLink.addEventListener("click", () => {
+  alert("You clicked a phishing link. Ransomware simulation activated.");
+  ransomware.encryptFiles();
+});
+
+renderFiles();
+</script>
+
 </body>
 </html>
