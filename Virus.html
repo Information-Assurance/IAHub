@@ -2,42 +2,156 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Virus Simulation</title>
+  <title>Virus Simulation (Visual)</title>
   <style>
-    body { font-family: 'Segoe UI', Arial, sans-serif; background:#0b1020; color:#f0f0f0; padding:20px; }
-    h1 { color:#ff5555; }
-    .file-list, .log { margin-top:15px; padding:12px; border-radius:6px; background:#111827; }
-    .file { padding:6px 0; border-bottom:1px solid #222; }
-    .file span.name { display:inline-block; width:150px; font-weight:600; }
-    .file span.content { color:#9ca3af; }
-    button { margin-top:12px; padding:8px 16px; border:none; border-radius:5px;
-             background:#2563eb; color:white; cursor:pointer; font-weight:bold; transition:0.2s; }
-    button:hover { background:#1d4ed8; }
-    .infected { color:#f97316; font-weight:bold; }
-    .corrupted { color:#f87171; font-weight:bold; }
-    hr { border:0; border-top:1px solid #333; margin:10px 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0b1020;
+      color: #f0f0f0;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #ff5555;
+      text-align: center;
+    }
+
+    p {
+      text-align: center;
+      color: #cbd5e1;
+      max-width: 700px;
+      margin: 0 auto 20px auto;
+    }
+
+    .file-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .file {
+      background: #111827;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #222;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: default;
+    }
+
+    .file:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 15px rgba(37, 99, 235, 0.4);
+    }
+
+    .file span.name {
+      display: block;
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 6px;
+      color: #cbd5e1;
+    }
+
+    .file span.content {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .status-badge {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-weight: bold;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .infected-badge {
+      background: #f97316;
+      color: #1a1200;
+      animation: pulse 1s infinite alternate;
+    }
+
+    .corrupted-badge {
+      background: #f87171;
+      color: #660000;
+      animation: shake 0.3s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-2px); }
+      50% { transform: translateX(2px); }
+      75% { transform: translateX(-2px); }
+      100% { transform: translateX(0); }
+    }
+
+    .controls {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    button {
+      margin: 0 6px;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 6px;
+      background: #2563eb;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    button:disabled {
+      background: #4ade80;
+      cursor: not-allowed;
+    }
+
+    .log {
+      margin-top: 25px;
+      padding: 15px;
+      background: #111827;
+      border-radius: 10px;
+      border: 1px solid #222;
+      height: 220px;
+      overflow-y: auto;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+
+    .log hr {
+      border-color: #333;
+      margin: 10px 0;
+    }
   </style>
 </head>
 <body>
   <h1>Virus Simulation</h1>
-  <p>
-    This is a <strong>safe simulation</strong> of a simple virus concept.  
-    It only affects this page, meaning no real files will be touched.  
-    Click buttons below to simulate running a file, scanning, and resetting.
-  </p>
+  <p>This is a <strong>safe simulation</strong> of a virus. It only affects this page.  
+  Click the buttons below to simulate opening a file, scanning, and resetting.</p>
 
   <div class="file-list" id="fileList"></div>
 
-  <button id="runFileBtn">Open "Game.exe"</button>
-  <button id="scanBtn">Run Antivirus Scan</button>
-  <button id="resetBtn">Reset Simulation</button>
-
-  <div class="log" id="log">
-    <strong>Activity Log:</strong><br>
+  <div class="controls">
+    <button id="runFileBtn">Open "Game.exe"</button>
+    <button id="scanBtn">Run Antivirus Scan</button>
+    <button id="resetBtn">Reset Simulation</button>
   </div>
 
+  <div class="log" id="log"><strong>Activity Log:</strong><br></div>
+
   <script>
-    // Simulated files
     const files = [
       { name: "Game.exe", content: "Legit game binary", infected: false, corrupted: false },
       { name: "Report.docx", content: "My school report", infected: false, corrupted: false },
@@ -50,67 +164,58 @@
     const runBtn = document.getElementById("runFileBtn");
     const scanBtn = document.getElementById("scanBtn");
     const resetBtn = document.getElementById("resetBtn");
+    const originalFiles = JSON.parse(JSON.stringify(files));
 
-    // Render files in a human-readable way
     function renderFiles() {
-      fileListDiv.innerHTML = "<strong>Simulated Files:</strong><br>";
+      fileListDiv.innerHTML = "";
       files.forEach(file => {
-        const status = [];
-        if (file.infected) status.push("INFECTED");
-        if (file.corrupted) status.push("CORRUPTED");
-
         const div = document.createElement("div");
         div.className = "file";
+
+        let badgeHTML = "";
+        if (file.infected) badgeHTML = '<span class="status-badge infected-badge">Infected</span>';
+        else if (file.corrupted) badgeHTML = '<span class="status-badge corrupted-badge">Corrupted</span>';
+
         div.innerHTML = `
           <span class="name">${file.name}</span>
           <span class="content">${file.content}</span>
-          ${status.length ? `<span class="${file.corrupted ? 'corrupted' : 'infected'}">[${status.join(" / ")}]</span>` : ""}
+          ${badgeHTML}
         `;
         fileListDiv.appendChild(div);
       });
     }
 
-    // Friendly log messages
     function log(msg) {
       logDiv.innerHTML += msg + "<br>";
-      logDiv.scrollTop = logDiv.scrollHeight; // auto-scroll
+      logDiv.scrollTop = logDiv.scrollHeight;
     }
 
-    const originalFiles = JSON.parse(JSON.stringify(files));
-
-    // Simulated virus object
     const virus = {
-      name: "JS-Demo-Virus",
       attachToHost(hostFile) {
         hostFile.infected = true;
-        log(`⚠️ The virus has attached itself to "${hostFile.name}".`);
+        log(`⚠️ The virus has attached to "${hostFile.name}".`);
       },
       corruptFilesStepByStep() {
-        log("💥 The virus is spreading to other files...");
+        log("💥 The virus is spreading...");
         const targets = files.filter(f => f.name !== "Game.exe");
-        let index = 0;
-
-        function infectNext() {
-          if (index >= targets.length) {
-            log("✅ All target files have been affected.");
+        let i = 0;
+        function step() {
+          if (i >= targets.length) {
+            log("✅ All files affected.");
             return;
           }
-          const file = targets[index++];
+          const file = targets[i++];
           file.corrupted = true;
           file.content = "[CORRUPTED DATA]";
           log(`🛑 File corrupted: ${file.name}`);
           renderFiles();
-          setTimeout(infectNext, 800);
+          setTimeout(step, 800);
         }
-
-        infectNext();
+        step();
       },
-      executePayload() {
-        this.corruptFilesStepByStep();
-      }
+      executePayload() { this.corruptFilesStepByStep(); }
     };
 
-    // Button actions
     runBtn.addEventListener("click", () => {
       log("<hr>▶ User opened Game.exe...");
       const host = files.find(f => f.name === "Game.exe");
@@ -118,32 +223,28 @@
       renderFiles();
       setTimeout(() => {
         virus.executePayload();
-        log("💻 Virus payload executed after opening the file.");
+        log("💻 Payload executed.");
         runBtn.disabled = true;
-        runBtn.textContent = 'Game.exe (already opened)';
+        runBtn.textContent = 'Game.exe (opened)';
       }, 1000);
     });
 
     scanBtn.addEventListener("click", () => {
       log("<hr>🔍 Antivirus scan started...");
-      files.forEach(file => {
-        if (file.infected || file.corrupted) log(`🧹 Cleaned: ${file.name}`);
-        file.infected = false;
-        file.corrupted = false;
-        if (file.name !== "Game.exe") file.content = "[DATA LOST – restored in real scenario]";
-        else file.content = "Legit game binary";
+      files.forEach(f => {
+        if (f.infected || f.corrupted) log(`🧹 Cleaned: ${f.name}`);
+        f.infected = false;
+        f.corrupted = false;
+        f.content = f.name === "Game.exe" ? "Legit game binary" : "[DATA LOST – restored in real scenario]";
       });
       renderFiles();
-      log("✅ Scan complete. All files are restored in this simulation.");
+      log("✅ Scan complete.");
     });
 
     resetBtn.addEventListener("click", () => {
-      log("<hr>🔄 Simulation reset to original state.");
-      for (let i = 0; i < files.length; i++) {
-        files[i].name = originalFiles[i].name;
-        files[i].content = originalFiles[i].content;
-        files[i].infected = originalFiles[i].infected;
-        files[i].corrupted = originalFiles[i].corrupted;
+      log("<hr>🔄 Simulation reset.");
+      for (let i=0; i<files.length; i++) {
+        Object.assign(files[i], originalFiles[i]);
       }
       runBtn.disabled = false;
       runBtn.textContent = 'Open "Game.exe"';
